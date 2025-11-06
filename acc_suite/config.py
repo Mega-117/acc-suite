@@ -50,46 +50,15 @@ class VersionInfo:
 
     @classmethod
     def load(cls, path: str = DEFAULT_VERSION_FILE) -> "VersionInfo":
-        """Load version metadata, tolerating missing files.
-
-        When the project runs from sources the ``version.json`` file may live in
-        the repository root instead of next to the package.  In frozen builds
-        the file is bundled beside the executable.  We therefore probe a small
-        set of locations and fall back to default metadata when nothing is
-        available so start-up never crashes with ``FileNotFoundError``.
-        """
-
-        candidates = []
-        if path:
-            candidates.append(path)
-
-        base = base_dir()
-        if base:
-            package_candidate = os.path.join(base, "version.json")
-            if package_candidate not in candidates:
-                candidates.append(package_candidate)
-            parent = os.path.dirname(base)
-            if parent:
-                repo_candidate = os.path.join(parent, "version.json")
-                if repo_candidate not in candidates:
-                    candidates.append(repo_candidate)
-
-        for candidate in candidates:
-            if candidate and os.path.exists(candidate):
-                with open(candidate, "r", encoding="utf-8") as handle:
-                    payload = json.load(handle)
-                return cls(
-                    version=payload.get("version", "0.0.0"),
-                    download_url=payload.get("downloadUrl", ""),
-                    sha256=payload.get("sha256"),
-                    notes=payload.get("notes"),
-                    metadata_url=payload.get("metadataUrl"),
-                )
-
-        # Default metadata when no file is found.  This keeps the updater
-        # operational (it will fetch remote metadata) while avoiding crashes at
-        # import time if the local file is missing.
-        return cls(version="0.0.0", download_url="")
+        with open(path, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        return cls(
+            version=payload.get("version", "0.0.0"),
+            download_url=payload.get("downloadUrl", ""),
+            sha256=payload.get("sha256"),
+            notes=payload.get("notes"),
+            metadata_url=payload.get("metadataUrl"),
+        )
 
 
 __all__ = [
